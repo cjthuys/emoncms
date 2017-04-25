@@ -19,7 +19,7 @@ Modules/*/
 !Modules/time/
 !Modules/user/
 !Modules/vis/
-
+!Modules/setup/
 # Ignore all themes except basic
 Theme/*
 Theme/*/
