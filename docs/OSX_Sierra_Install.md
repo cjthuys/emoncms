@@ -89,12 +89,12 @@ From a terminal window run `xcode-select --install`
 
 ### Configure Apache   - Assumes you are not currently running apache on your iMac
 
-replace username with your mac logon username
+replace <username> with your mac logon username
 
 ```
   mkdir /etc/apache2/Sites
   cat > /etc/apache2/Sites/emoncms.conf <<EOF
-  <Directory "/Users/username/Sites/emoncms">
+  <Directory "/Users/<username>/Sites/emoncms">
     AllowOverride All
     Options Indexes MultiViews FollowSymLinks
     Require all granted
@@ -103,45 +103,99 @@ replace username with your mac logon username
   chmod 644 /etc/apache2/Sites/emoncms.conf
   ```
 Edit /etc/apache2/httpd.conf and make sure the following modules are uncommented.
-''`
+
+```
 LoadModule authz_core_module libexec/apache2/mod_authz_core.so
 LoadModule authz_host_module libexec/apache2/mod_authz_host.so
 LoadModule userdir_module libexec/apache2/mod_userdir.so
 LoadModule include_module libexec/apache2/mod_include.so
 LoadModule rewrite_module libexec/apache2/mod_rewrite.so
+LoadModule php5_module libexec/apache2/libphp5.so
 ```
+Also add the following line to /etc/apache2/httpd.conf
+
+`Include /private/etc/apache2/Sites/*.conf`
+
+Create a root folder for emoncms and a php test file
+
+```
+  mkdir /Users/<username>/Sites/emoncms
+  echo "<?php phpinfo(); ?>" > /Users/<username>/Sites/emoncms/php-info.php
+```
+Remember to replace <username> with your username
+
+Start or restart apache
+`sudo apachectl restart`
+
+Verify apache is running by got to http:\\localhost\emoncms  you should see the index for the folder emoncms which is currently empty.
+Also try http:\\emoncms\php-info.php   This should detail the php installation information
 
 Emoncms uses a front controller to route requests, modrewrite needs to be configured:
     
 ```
- sudo a2enmod rewrite
- sudo sh -c "echo '<Directory /var/www/html/emoncms>' >> /etc/apache2/sites-available/emoncms.conf"
- sudo sh -c "echo '  Options FollowSymLinks' >> /etc/apache2/sites-available/emoncms.conf"
- sudo sh -c "echo '  AllowOverride All' >> /etc/apache2/sites-available/emoncms.conf"
- sudo sh -c "echo '  DirectoryIndex index.php' >> /etc/apache2/sites-available/emoncms.conf"
- sudo sh -c "echo '  Order allow,deny' >> /etc/apache2/sites-available/emoncms.conf"
- sudo sh -c "echo '  Allow from all' >> /etc/apache2/sites-available/emoncms.conf"
- sudo sh -c "echo '</Directory>' >> /etc/apache2/sites-available/emoncms.conf"
- sudo ln -s /etc/apache2/sites-available/emoncms.conf /etc/apache2/sites-enabled/
- sudo a2ensite emoncms
- sudo service apache2 reload
+ cat > /etc/apache2/Sites/emoncms.conf <<EOF
+ <Directory /Users/<username>/Sites/emoncms>
+   Options FollowSymLinks
+   AllowOverride All
+   DirectoryIndex index.php
+   Order allow,deny
+   Allow from all
+ </Directory>
+ EOF
+ sudo apachectl restart
 ```
+
+### Install MySQL
+
+  MySQL doesn’t come pre-loaded with macOS Sierra and needs to be dowloaded from http://dev.mysql.com/downloads/mysql/
+
+  Once downloaded open the .dmg and run the installer.
+
+  When it is finished installing you get a dialog box with a temporary mysql root password – that is a MySQL root password not a macOS admin password, copy and paste it so you can use it.
+
+  Stop MySQL
+
+  `sudo /usr/local/mysql/support-files/mysql.server stop`
+
+  Start it in safe mode:
+
+  `sudo mysqld_safe --skip-grant-tables`
+
+  This will be an ongoing command until the process is finished so open another shell/terminal window, and log in without a password as root:
+
+```
+  mysql -u root
+  FLUSH PRIVILEGES;
+  ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
+  Change the lowercase ‘MyNewPass’ to what you want – and keep the single quotes.
+  \q
+```
+
+Start MySQL
+
+  `sudo /usr/local/mysql/support-files/mysql.server start`
+  
+Add mysql bin directory to Path in your bash profile 
+  ```
+  cd 
+  echo export PATH="/usr/local/mysql/bin:$PATH" >> .bash_profile
+  ```
     
 ## Install Emoncms
 
 Git is a source code management and revision control system but at this stage we use it to just download and update the emoncms application.
 
-First cd into the /var/www directory:
+First cd into the /Users/<username>/Sites/emoncms directory:
 
-    cd /var/www/
+    `cd /Users/<username>/Sites/`
 
-Set the permissions of the html directory to be owned by your username:
+Set the permissions of the emoncms directory to be owned by your username:
 
-    sudo chown $USER html
+    `sudo chown $USER emoncms`
 
-Cd into html directory
+Cd into emoncms directory
 
-    cd html
+    `cd html`
 
 Download emoncms using git:
 
@@ -151,7 +205,7 @@ Download emoncms using git:
     
 Once installed you can pull in updates with:
 
-    cd /var/www/html/emoncms
+    cd /Users/<username>/Sites/emoncms
     git pull
     
 ## Create a MYSQL database
@@ -219,6 +273,9 @@ The 'modules' need to save their configurations in the emoncms database, so in y
 
 See individual module readme's for further information on individual module installation.
 
+## enable MQTT Inputs   : Assuming you are running MQTT else where.
+https://github.com/emoncms/emoncms/blob/master/docs/RaspberryPi/MQTT.md
+
 ## Running Emoncms
 
 [http://localhost/emoncms](http://localhost/emoncms)
@@ -227,28 +284,9 @@ The first time you run emoncms it will automatically setup the database and you 
 
 Create an account by entering your email and password and clicking register to complete.
 
-#### Note: Browser Compatibility
 
-**Chrome Ubuntu 48.0.2564.81** - developed with, works great.
 
-**Chrome Windows 25.0.1364.172** - quick check revealed no browser specific bugs.
 
-**Firefox Ubuntu 15.0.1** - no critical browser specific bugs, but movement in the dashboard editor is much less smooth than chrome.
-
-**Internet explorer 9** - works well with compatibility mode turned off. F12 Development tools -> browser mode: IE9. Some widgets such as the hot water cylinder do load later than the dial.
-
-**IE 8, 7** - not recommended, widgets and dashboard editor <b>do not work</b> due to no html5 canvas fix implemented but visualisations do work as these have a fix applied.
-
-***
-
-#### PHP Suhosin module configuration (Debian 6, not required in ubuntu)
-
-Dashboard editing needs to pass parameters through HTTP-GET mechanism and on Debian 6 the max
-allowable length of a single parameter is very small (512 byte). This is a problem for designing of dashboard
-and when you exceed this threshold all created dashboard are lost...
-
-To overcome this problem modify "suhosin.get.max_value_length" in /etc/php5/conf.d/suhosin.ini" to large
-value (8000, 16000 should be fine).
 
 #### Enable Multi lingual support using gettext
 
@@ -271,13 +309,13 @@ and search for "date.timezone"
 
 edit date.timezone to your appropriate timezone:
 
-    date.timezone = "Europe/Amsterdam"
+    date.timezone = "Australia/Perth"
     
 PHP supported timezones are listed here: http://php.net/manual/en/timezones.php
 
 Now save and close and restart your apache.
 
-    sudo service apache2 restart
+    sudo  apachectl restart
     
 ## Install Logger
 
