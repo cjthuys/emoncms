@@ -1,7 +1,24 @@
 # Install Emoncms on OSX Sierra
 
-This guide should work on OSX Sierra Using Apache and PHP delivered as part of the OS.
-For installation guide on installing emoncms on a raspberrypi see the [RaspberryPi installation guides](RaspberryPi/readme.md).
+This guide should work on OSX Sierra Using Apache and PHP delivered as part of the OS. It assumes you are running emonhub for data collection and MQTT elsewhere. An alternative would be to use MAMP (www.mamp.info)
+
+The information presented here comes from a variety of sources the main onces being
+https://coolestguidesontheplanet.com/get-apache-mysql-php-and-phpmyadmin-working-on-macos-sierra/
+
+http://macoperator.de/php-gettext-in-macos-sierra/
+
+https://github.com/mgdm/Mosquitto-PHP
+
+And also the EMONCMS Linux install doc from this site.
+
+There are many ways of getting emoncms to work on OSX this method uses the preinstalled apache and PHP that is a part of OSX Sierra.
+the prequistes for EMONCMS are:-
+    Apache, PHP, gettext, MQTT client, and MySQL
+    
+To install these you will also need some extra tools:- 
+    Xcode, Xcode command line utilities, autoconf and homebrew package manager
+
+
 
 ## Install dependencies
 
