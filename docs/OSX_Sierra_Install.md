@@ -250,15 +250,15 @@ Exit mysql by:
     sudo mkdir /var/lib/phpfina
     sudo mkdir /var/lib/phptimeseries
 
-    sudo chown www-data:root /var/lib/phpfiwa
-    sudo chown www-data:root /var/lib/phpfina
-    sudo chown www-data:root /var/lib/phptimeseries
+    sudo chown _www:root /var/lib/phpfiwa
+    sudo chown _www:root /var/lib/phpfina
+    sudo chown _www:root /var/lib/phptimeseries
 
 ## Setup Emoncms settings
 
 cd into the emoncms directory where the settings file is located
 
-    cd /var/www/html/emoncms/
+    cd /Users/<username>/Sites/emoncms
 
 Make a copy of default.settings.php and call it settings.php
 
@@ -281,7 +281,7 @@ Save (Ctrl-X), type Y and exit
 
 ### Install add-on emoncms modules (optional)
     
-    cd /var/www/html/emoncms/Modules
+    cd /Users/<username>/Sites/emoncms/Modules
     git clone https://github.com/emoncms/dashboard.git
     git clone https://github.com/emoncms/app.git
  
