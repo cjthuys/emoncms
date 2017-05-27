@@ -15,6 +15,8 @@ There are many ways of getting emoncms to work on OSX this method uses the prein
 the prequistes for EMONCMS are:-
     Apache, PHP, gettext, MQTT client, and MySQL
     
+Optional:- Redis
+    
 To install these you will also need some extra tools:- 
     Xcode, Xcode command line utilities, autoconf and homebrew package manager
 
@@ -103,6 +105,40 @@ From a terminal window run `xcode-select --install`
   
   `cp modules/gettext.so /usr/local/macoperator/lib/php/extensions`
   
+  ### Install Redis
+  ```
+   brew install redis
+   ln -sfv /usr/local/opt/redis/*.plist ~/Library/LaunchAgents
+   launchctl load ~/Library/LaunchAgents/homebrew.mxcl.redis.plist
+  ```
+    
+   Build Redis PHP extension
+  ```
+  cd /tmp/source
+  mkdir phpredis-build
+  cd phpredis-build
+  git clone --depth 1 git://github.com/nicolasff/phpredis.git
+  cd phpredis
+  phpize
+  ./configure
+  make
+  make install
+  ```
+   
+  Make install will fail trying to copy files into /usr/libexec/php/extensions  ignore this and copy the extension
+  
+  `cp modules/redis.so /usr/local/macoperator/lib/php/extensions`
+
+###Add php extensions to PHP
+
+```
+cat >>/etc/php.ini <<EOF
+extension=/usr/local/macoperator/lib/php/extensions/gettext.so
+extension=/usr/local/macoperator/lib/php/extensions/mosquitto.so
+extension=/usr/local/macoperator/lib/php/extensions/redis.so
+EOF
+```
+
 
 ### Configure Apache   - Assumes you are not currently running apache on your iMac
 
